@@ -57,9 +57,13 @@ export default {
 
 Set `"audio": "audio.js"` in storyboard.json. The module's default export has `build(ctx, { duration, scenes, starts, sr })`, where `ctx` is an `OfflineAudioContext` (stereo, 44.1 kHz). Schedule oscillators, noise, filters and a convolution reverb at absolute times, locked to the visuals (use `starts[i]` for scene starts). `swit_render_video` renders it offline and muxes it as AAC. Good baseline: a pad with a slow filter, bass, a kick that ducks the pad, a few hats, whooshes on cuts, blips on UI pops, keyboard clicks while text types, a bell on success, and a master fade out. Use a seeded random function so renders repeat exactly. Web Audio compressors add makeup gain, so put the final level control (and the fade out) after the compressor and limiter. Check the mix with `swit_render_audio` and `ffmpeg -i audio-preview.wav -af ebur128=peak=true -f null -`: aim for about -14 LUFS integrated and a peak under -1 dBFS. A peak at 0.0 dB means clipping.
 
-## Premium look
+## Look: restrained, not flashy
 
-A reference project lives in `examples/swit-intro` in the Swit repo: a shared `_kit.js` (moving light background, grain, glass panels, blur-in text, spring easing, skewed wipe transitions across cuts, cursor and click ripple) plus six scenes and an `audio.js`. Copy the kit into new projects and build scenes from it.
+Premium means restraint. The reference project in `examples/swit-intro` in the Swit repo shows the target: a flat dark neutral background, one accent colour used sparingly, off-white type set large and left aligned, hairline panels, short eased motion, and a plain curtain wipe on each cut. Its `scenes/_kit.js` has the helpers (word-by-word reveal, springs, panels, cursor and click ripple, wipe). Copy it into new projects.
+
+Do not use: glows or shadow blur, purple or multi-colour gradients, gradient text, sparkles or particles, film grain, glass or frosted panels, aurora or blurred blobs, timecode or HUD overlays, or sound-reactive decoration. They read as generic AI output. If the user names a brand, use its colours and type instead. Ask for the brand palette in the questions step when unsure.
+
+Any rectangle helper must multiply the current `globalAlpha` (not overwrite it), or shapes will show before their text fades in.
 
 ## Quality bar
 

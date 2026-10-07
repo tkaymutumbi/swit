@@ -66,6 +66,7 @@ Backend::Backend(QObject *parent) : QObject(parent), m_settings("Swit", "Swit")
     m_poll.setInterval(1500);
     connect(&m_poll, &QTimer::timeout, this, [this] { if (signature() != m_sig) refresh(); });
     m_poll.start();
+    writeSettingsMirror();   // keep the copy Claude reads in step with the saved settings
     refresh();
 }
 

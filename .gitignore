@@ -1,0 +1,11 @@
+build/
+node_modules/
+*.mp4
+frames/
+.env
+.env.*
+*.pem
+*.key
+id_*
+.claude/
+.DS_Store

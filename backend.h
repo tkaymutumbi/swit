@@ -49,6 +49,8 @@ public:
     Q_INVOKABLE void copyText(const QString &text);
     Q_INVOKABLE void openExternal(const QString &path);
     Q_INVOKABLE QString env(const QString &name) const { return qEnvironmentVariable(name.toUtf8().constData()); }
+    Q_INVOKABLE QVariantList formats() const;
+    Q_INVOKABLE void setFormat(const QString &id);
     Q_INVOKABLE QVariantMap settings() const;
     Q_INVOKABLE void setSetting(const QString &key, const QVariant &value);
     Q_INVOKABLE QVariantMap bindings() const;
@@ -66,6 +68,7 @@ signals:
     void toast(const QString &message);
 
 private:
+    void writeSettingsMirror() const;
     QVariantMap loadProject(const QString &dir, QVariantList *commentsOut) const;
     QStringList registered() const;
     void saveRegistry(const QStringList &dirs) const;

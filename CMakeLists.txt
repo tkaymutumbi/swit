@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(swit VERSION 0.3.0 LANGUAGES CXX)
+project(swit VERSION 0.4.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,11 +18,11 @@ qt_add_qml_module(swit
     VERSION 1.0
     QML_FILES
         Main.qml Theme.qml Nav.qml Prefs.qml
-        Act.qml Btn.qml Chip.qml Glyph.qml Toggle.qml IconButton.qml Key.qml HelpDialog.qml SettingsDialog.qml FrameImage.qml TopBar.qml Composer.qml
+        Act.qml FormatPopup.qml Btn.qml Chip.qml Glyph.qml Toggle.qml IconButton.qml Key.qml HelpDialog.qml SettingsDialog.qml FrameImage.qml TopBar.qml Composer.qml
         Home.qml Folder.qml Storyboard.qml Player.qml Review.qml
 )
 
-qt_add_resources(swit assets PREFIX "/swit" FILES icons/swit.svg CHANGELOG.md)
+qt_add_resources(swit assets PREFIX "/swit" FILES icons/swit.svg CHANGELOG.md formats.json)
 target_compile_definitions(swit PRIVATE SWIT_VERSION="${PROJECT_VERSION}")
 
 target_link_libraries(swit PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Multimedia Qt6::GuiPrivate)

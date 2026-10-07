@@ -24,6 +24,9 @@ Item {
         else backend.openExternal(r.path)
     }
 
+    FormatPopup { id: formatPopup }
+    Connections { target: Nav; function onFormatRequested() { if (visible) formatPopup.open() } }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -43,7 +46,8 @@ Item {
                 spacing: 12
                 RowLayout {
                     Layout.fillWidth: true; Layout.alignment: Qt.AlignTop
-                    Text { text: folder.proj.title || ""; color: Theme.t; font.pixelSize: 22; font.weight: Font.DemiBold; Layout.fillWidth: true }
+                    Text { text: folder.proj.title || ""; color: Theme.t; font.pixelSize: 22; font.weight: Font.DemiBold; Layout.fillWidth: true; elide: Text.ElideRight }
+                    Chip { text: (folder.proj.formatName || "") + "  " + (folder.proj.ratio || ""); hi: true; onClicked: formatPopup.open() }
                     Text { text: folder.rows.length + " items"; color: Theme.s; font.family: Theme.mono; font.pixelSize: 12 }
                 }
                 Rectangle {
@@ -108,6 +112,7 @@ Item {
                     anchors.fill: parent; anchors.margins: 22; spacing: 14
                     FrameImage {
                         Layout.fillWidth: true; Layout.preferredHeight: width * 9 / 16
+                        fit: true
                         radius: 10
                         label: "No preview"
                         source: folder.proj.frames && folder.proj.frames.length ? folder.proj.frames[0] : ""

@@ -179,7 +179,7 @@ Item {
                                 required property int index
                                 x: tl.lw + tl.tw * modelData.start / pl.total + 1
                                 width: Math.max(4, tl.tw * modelData.duration / pl.total - 2); height: 48; radius: 6
-                                source: modelData.frameUrl; compact: true
+                                source: modelData.frameUrl; compact: true; fit: (pl.proj.aspect || 1.78) < 1.5
                                 border.width: pl.cur === index ? 2 : (modelData.hasFrame ? 0 : 1); border.color: pl.cur === index ? Theme.c : Theme.l
                                 Rectangle { visible: modelData.hasFrame; anchors.fill: parent; color: "#66000000" }
                                 Text { visible: modelData.hasFrame; anchors.left: parent.left; anchors.bottom: parent.bottom; anchors.margins: 5; text: modelData.name; color: "#fff"; font.pixelSize: 11; style: Text.Outline; styleColor: "#aa000000" }

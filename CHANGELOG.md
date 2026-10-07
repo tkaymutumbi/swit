@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 - 2026-10-07
+
+- Video formats: landscape 16:9, vertical 9:16 (TikTok, Reels, Shorts), square 1:1, portrait 4:5, and 4K. Each project stores its format.
+- Pick the format of any video from its storyboard or folder (the format badge). Swit then gives you a prompt to paste to Claude so it re-lays out the scenes.
+- New setting: Default format for new videos. Claude reads it when you do not name a format.
+- Previews, storyboard frames and Home cards now follow the video's real shape, so vertical videos are no longer cropped.
+- Claude tools: `swit_list_formats` and `swit_set_format`, and `swit_init_project` takes a format.
+- Scenes get `u`, `vertical` and `safe` (the area clear of platform buttons) to lay out for each shape.
+- Added a vertical TikTok cut of the intro as an example.
+
 ## 0.3.0 - 2026-10-07
 
 - Keyboard shortcuts you can change: every action in the player, review, storyboard and home screens has a binding. Record a new one in Settings, Keyboard.

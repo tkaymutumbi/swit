@@ -1,0 +1,17 @@
+[
+  { "id": "landscape", "name": "Landscape", "ratio": "16:9", "width": 1920, "height": 1080,
+    "platforms": "YouTube, websites, presentations, LinkedIn, Facebook video",
+    "safe": { "top": 0.06, "right": 0.06, "bottom": 0.08, "left": 0.06 } },
+  { "id": "vertical", "name": "Vertical", "ratio": "9:16", "width": 1080, "height": 1920,
+    "platforms": "TikTok, Instagram Reels, YouTube Shorts, Facebook Reels, Stories",
+    "safe": { "top": 0.09, "right": 0.13, "bottom": 0.2, "left": 0.07 } },
+  { "id": "square", "name": "Square", "ratio": "1:1", "width": 1080, "height": 1080,
+    "platforms": "Instagram, Facebook and LinkedIn feed posts",
+    "safe": { "top": 0.07, "right": 0.07, "bottom": 0.09, "left": 0.07 } },
+  { "id": "portrait", "name": "Portrait", "ratio": "4:5", "width": 1080, "height": 1350,
+    "platforms": "Instagram and Facebook feed posts that take more screen",
+    "safe": { "top": 0.07, "right": 0.07, "bottom": 0.1, "left": 0.07 } },
+  { "id": "4k", "name": "4K landscape", "ratio": "16:9", "width": 3840, "height": 2160,
+    "platforms": "4K screens and YouTube. Slow to render.",
+    "safe": { "top": 0.06, "right": 0.06, "bottom": 0.08, "left": 0.06 } }
+]

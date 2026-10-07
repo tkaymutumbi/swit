@@ -11,7 +11,7 @@ QtObject {
     property var acts: []
     property var lastFired: ({})
 
-    readonly property var defaults: ({ noteSpan: "3s", autoplay: false, loop: false, captions: false, seekStep: 5 })
+    readonly property var defaults: ({ noteSpan: "3s", autoplay: false, loop: false, captions: false, seekStep: 5, defaultFormat: "landscape" })
 
     // scope groups are shown in this order in Help and Settings
     readonly property var defs: [

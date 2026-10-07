@@ -183,13 +183,14 @@ Item {
                             anchors.fill: parent; spacing: 0
                             FrameImage {
                                 Layout.fillWidth: true; Layout.preferredHeight: width * 9 / 16
+                                fit: true
                                 radius: 0
                                 label: "No frames yet"
                                 source: cell.modelData.frames.length > 1 ? cell.modelData.frames[1] : (cell.modelData.frames.length ? cell.modelData.frames[0] : "")
                                 Rectangle {
                                     anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.margins: 8
                                     radius: 10; color: "#aa000000"; width: sc.implicitWidth + 16; height: 22
-                                    Text { id: sc; anchors.centerIn: parent; text: cell.modelData.sceneCount + " scenes"; color: "#fff"; font.pixelSize: 11 }
+                                    Text { id: sc; anchors.centerIn: parent; text: cell.modelData.sceneCount + " scenes" + (cell.modelData.format !== "landscape" ? "  \u00B7  " + cell.modelData.ratio : ""); color: "#fff"; font.pixelSize: 11 }
                                 }
                             }
                             ColumnLayout {

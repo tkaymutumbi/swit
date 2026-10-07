@@ -11,7 +11,7 @@ Videos are code. Each scene is a JS canvas module rendered frame by frame (headl
 
 Use AskUserQuestion. Skip anything the user already said. Cover:
 - Purpose and audience (launch promo, explainer, social ad, tutorial).
-- Length and format (15s / 30s / 60s; 16:9, 9:16 or 1:1).
+- Length (15s / 30s / 60s) and where it will be posted. That decides the format (see Formats). If the user does not say, use their saved default (`swit_list_formats` shows it) and say which you picked.
 - Brand: name, colours, fonts, logo file, tone.
 - Content: key message, offer or call to action, any text that must appear verbatim.
 - Audio: none, music file, or voiceover script (renderer is silent unless a file is supplied).
@@ -32,8 +32,24 @@ After approval: `swit_render_frames` for the remaining scenes if wanted, then `s
 When asked to "read the comments" or "fix what is in the comments":
 1. `swit_list_comments` (status open). Each has scene, sceneFile, line (code comments), time and a normalized region x/y/w/h (0..1 of the frame) for drawn ones. Drawn notes also carry `span` (`time`, `scene` or `video`) and `duration` in seconds: they were meant to apply only for that stretch, so change only what is visible then.
 2. Edit the scene files (or storyboard.json) to address each one. Keep unrelated code unchanged.
-3. `swit_render_frames` for touched scenes, then `swit_render_video`.
+3. `swit_render_frames` for touched scenes, then `swit_render_video`. After a format change by the user, re-lay out all scenes first.
 4. `swit_resolve_comment` for each fixed comment with a one line note. Leave a comment open and say why if it is unclear.
+
+## Formats
+
+The shape of the video decides where it fits. Pass `format` to `swit_init_project`, or leave it out to use the default the user saved in Swit settings.
+
+| format | shape | size | for |
+|---|---|---|---|
+| `landscape` | 16:9 | 1920x1080 | YouTube, websites, presentations, LinkedIn, Facebook video |
+| `vertical` | 9:16 | 1080x1920 | TikTok, Instagram Reels, YouTube Shorts, Facebook Reels, Stories |
+| `square` | 1:1 | 1080x1080 | Instagram, Facebook and LinkedIn feed posts |
+| `portrait` | 4:5 | 1080x1350 | Instagram and Facebook feed posts that take more screen |
+| `4k` | 16:9 | 3840x2160 | 4K screens and YouTube (slow to render) |
+
+Scenes are laid out for one shape. To change shape later call `swit_set_format`, then re-lay out every scene, re-render the frames and the video. The user can also change a project's format in Swit (storyboard, format badge) and will paste you a prompt.
+
+Scenes receive extra draw args for this: `u` (scale unit, 1 at 1080 on the short side, so 2 at 4K), `vertical` (taller than wide), `safe` (`{x, y, w, h}` content box in pixels that stays clear of platform buttons and captions) and `format`. Keep text and key objects inside `safe`; anything outside it may be covered on TikTok and Reels (about the bottom 20% and the right 13%). Do not scale a landscape layout into a vertical frame. Re-compose: break headlines into short stacked lines (`What if` / `Claude` / `just wrote` / `it?`), stack chips vertically, use bigger type, draw frame cards in the video's own shape. Examples: `examples/swit-intro` (landscape) and `examples/swit-intro-vertical` (the same story in 9:16).
 
 ## Scene contract
 
@@ -49,8 +65,8 @@ export default {
 - Draw everything from t alone (no state, no Date.now, no Math.random without a fixed seed) so any frame can be rendered on its own.
 - Fade or slide in the first ~0.4s and out in the last ~0.3s for clean cuts. Keep text inside a 6% safe margin.
 - Images: put files in `assets/` and load with `new Image()` inside an async `draw`, awaiting `img.decode()`. Fonts: `@font-face` is not available, use system stacks or load a local file via the FontFace API from `assets/`.
-- Extra draw args: `gt` (global seconds since the video started), `start` (this scene's start), `total`. Use `gt` for backgrounds and effects that must flow across scene cuts.
-- storyboard.json fields: title, width, height, fps, audio (optional, e.g. "audio.js"), scenes[{id, file, name, caption, duration, note, previewAt}].
+- Extra draw args: `u`, `vertical`, `safe`, `format` (see Formats), and `gt` (global seconds since the video started), `start` (this scene's start), `total`. Use `gt` for backgrounds and effects that must flow across scene cuts.
+- storyboard.json fields: title, format, width, height, fps, audio (optional, e.g. "audio.js"), crf (optional quality, default 21, lower is bigger), scenes[{id, file, name, caption, duration, note, previewAt}].
 - Keep `previewAt` (0..1) away from the last 10% of a scene when it ends in a transition, so the preview frame is not a wipe.
 
 ## Sound

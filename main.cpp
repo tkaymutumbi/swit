@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
     QQuickStyle::setStyle("Basic");
 
     Backend backend;
+    // Dev option: SWIT_SET="defaultFormat=vertical" saves a setting at start (used to test what Claude reads).
+    { const QString kv = backend.env("SWIT_SET"); if (kv.contains('=')) backend.setSetting(kv.section('=', 0, 0), kv.section('=', 1)); }
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("backend", &backend);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, [] { QCoreApplication::exit(-1); }, Qt::QueuedConnection);

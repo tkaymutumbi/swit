@@ -18,7 +18,7 @@ ApplicationWindow {
     Component.onCompleted: {
         Prefs.init(backend)
         var dlg = backend.env("SWIT_DIALOG")   // dev option: help | settings | keys | about
-        if (dlg) Qt.callLater(function () { dlg === "help" ? Nav.helpRequested() : Nav.settingsRequested(dlg === "settings" ? "general" : dlg) })
+        if (dlg) Qt.callLater(function () { dlg === "help" ? Nav.helpRequested() : dlg === "format" ? Nav.formatRequested() : Nav.settingsRequested(dlg === "settings" ? "general" : dlg) })
         var s = backend.env("SWIT_START")
         if (!s) return
         var a = s.split("|")

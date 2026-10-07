@@ -79,6 +79,37 @@ void Backend::setVideosRoot(const QString &urlOrPath)
     refresh();
 }
 
+QVariantList Backend::formats() const
+{
+    QFile f(":/swit/formats.json");
+    if (!f.open(QIODevice::ReadOnly)) return {};
+    return QJsonDocument::fromJson(f.readAll()).array().toVariantList();
+}
+
+void Backend::setFormat(const QString &id)
+{
+    if (m_dir.isEmpty()) return;
+    for (const auto &v : formats()) {
+        const QVariantMap f = v.toMap();
+        if (f.value("id").toString() != id) continue;
+        QJsonObject sb = readObject(m_dir + "/storyboard.json");
+        sb["format"] = id;
+        sb["width"] = f.value("width").toInt();
+        sb["height"] = f.value("height").toInt();
+        writeJson(m_dir + "/storyboard.json", sb);
+        refresh();
+        emit toast(QString("Format set to %1 %2").arg(f.value("name").toString(), f.value("ratio").toString()));
+        return;
+    }
+}
+
+// Claude's MCP server reads this file for defaults such as the format of new videos.
+void Backend::writeSettingsMirror() const
+{
+    QDir().mkpath(QDir::homePath() + "/.config/swit");
+    writeJson(QDir::homePath() + "/.config/swit/settings.json", QJsonObject::fromVariantMap(settings()));
+}
+
 QVariantMap Backend::settings() const
 {
     QVariantMap out;
@@ -91,6 +122,7 @@ QVariantMap Backend::settings() const
 void Backend::setSetting(const QString &key, const QVariant &value)
 {
     m_settings.setValue("prefs/" + key, value);
+    writeSettingsMirror();
 }
 
 QVariantMap Backend::bindings() const
@@ -216,6 +248,19 @@ QVariantMap Backend::loadProject(const QString &dir, QVariantList *commentsOut) 
     p["width"] = sb.value("width").toInt(1920);
     p["height"] = sb.value("height").toInt(1080);
     p["fps"] = sb.value("fps").toInt(30);
+    {
+        const int pw = p["width"].toInt(), ph = p["height"].toInt();
+        QString fid = sb.value("format").toString(), fname, fratio;
+        for (const auto &v : formats()) {
+            const QVariantMap f = v.toMap();
+            if (f.value("id").toString() == fid || (fid.isEmpty() && f.value("width").toInt() == pw && f.value("height").toInt() == ph)) {
+                fid = f.value("id").toString(); fname = f.value("name").toString(); fratio = f.value("ratio").toString(); break;
+            }
+        }
+        if (fname.isEmpty()) { fid = "custom"; fname = "Custom"; fratio = QString("%1:%2").arg(pw).arg(ph); }
+        p["format"] = fid; p["formatName"] = fname; p["ratio"] = fratio;
+        p["aspect"] = ph > 0 ? double(pw) / ph : 16.0 / 9.0;
+    }
     p["scenes"] = scenes;
     p["sceneCount"] = scenes.size();
     p["drawn"] = drawn;

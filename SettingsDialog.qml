@@ -73,6 +73,12 @@ Popup {
                 }
                 Divider {}
                 Row2 {
+                    title: "Default format for new videos"
+                    hint: { var fs = backend.formats(), id = Prefs.get("defaultFormat"); for (var i = 0; i < fs.length; i++) if (fs[i].id === id) return fs[i].ratio + "  " + fs[i].width + "\u00D7" + fs[i].height + "  \u00B7  " + fs[i].platforms; return "" }
+                    Repeater { model: backend.formats(); Chip { required property var modelData; text: modelData.name; on: Prefs.get("defaultFormat") === modelData.id; onClicked: Prefs.set("defaultFormat", modelData.id) } }
+                }
+                Divider {}
+                Row2 {
                     title: "Default note duration"; hint: "How long a drawn note shows on the video."
                     Repeater { model: ["1s", "3s", "5s", "Scene", "Video"]; Chip { required property string modelData; text: modelData; on: Prefs.get("noteSpan") === modelData; onClicked: Prefs.set("noteSpan", modelData) } }
                 }

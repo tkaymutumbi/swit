@@ -7,6 +7,7 @@ QtObject {
     property int storyScene: 0
     signal addFolderRequested()
     signal helpRequested()
+    signal formatRequested()
     signal settingsRequested(string tab)
 
     function go(p) { page = p }

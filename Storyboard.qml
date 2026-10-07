@@ -37,6 +37,10 @@ Item {
     Act { action: "story.next"; active: sb.visible; onTriggered: Nav.storyScene = Math.min(sb.scenes.length - 1, sb.idx + 1) }
     Act { action: "story.approve"; active: sb.visible && sb.scene !== null; onTriggered: backend.setSceneApproved(sb.scene.id, !sb.scene.approved) }
 
+    readonly property real ar: proj.aspect || 16 / 9
+    FormatPopup { id: formatPopup }
+    Connections { target: Nav; function onFormatRequested() { if (visible) formatPopup.open() } }
+
     Composer {
         id: composer
         onAccepted: (text) => backend.addComment({ kind: "code", scene: sb.scene.id, file: sb.scene.file, line: sb.pendingLine, text: text })
@@ -47,6 +51,7 @@ Item {
         spacing: 0
         TopBar {
             crumbs: [{ text: "Home", page: "home" }, { text: sb.proj.name || "", page: "folder" }, { text: "Storyboard", page: "storyboard" }]
+            Chip { visible: !sb.narrow; text: (sb.proj.formatName || "") + "  " + (sb.proj.ratio || ""); hi: true; onClicked: formatPopup.open() }
             Chip { visible: !sb.narrow; text: (sb.proj.drawn || 0) + " of " + (sb.proj.sceneCount || 0) + " frames drawn" }
             Btn {
                 text: "Ask Claude to draw the rest"
@@ -98,7 +103,7 @@ Item {
                     Layout.fillWidth: true; Layout.fillHeight: true; Layout.minimumHeight: 120
                     FrameImage {
                         anchors.centerIn: parent
-                        width: Math.min(parent.width, parent.height * 16 / 9); height: width * 9 / 16
+                        width: Math.min(parent.width, parent.height * sb.ar); height: width / sb.ar
                         radius: 12
                         source: sb.scene ? sb.scene.frameUrl : ""
                         label: sb.scene ? sb.scene.name : ""
@@ -206,10 +211,10 @@ Item {
                 delegate: Item {
                     required property var modelData
                     required property int index
-                    width: sb.narrow ? 120 : 160; height: ListView.view.height
+                    width: (sb.narrow ? 68 : 90) * sb.ar; height: ListView.view.height
                     FrameImage {
                         anchors.verticalCenter: parent.verticalCenter
-                        width: sb.narrow ? 120 : 160; height: sb.narrow ? 68 : 90
+                        width: (sb.narrow ? 68 : 90) * sb.ar; height: sb.narrow ? 68 : 90
                         source: modelData.frameUrl
                         label: (index + 1) + " " + modelData.name
                         compact: true

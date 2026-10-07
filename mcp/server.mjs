@@ -8,6 +8,10 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { renderFrames, renderVideo, renderAudioFile } from './render.mjs';
 
+const FORMATS = JSON.parse(await fs.readFile(new URL('../formats.json', import.meta.url), 'utf8'));
+const formatIds = FORMATS.map((f) => f.id);
+const SETTINGS = path.join(os.homedir(), '.config', 'swit', 'settings.json'); // mirrored by the Swit app
+const defaultFormat = async () => { try { const id = JSON.parse(await fs.readFile(SETTINGS, 'utf8')).defaultFormat; return formatIds.includes(id) ? id : 'landscape'; } catch { return 'landscape'; } };
 const ROOT = process.env.SWIT_VIDEOS || path.join(os.homedir(), 'videos');
 const REGISTRY = path.join(os.homedir(), '.config', 'swit', 'projects.json');
 
@@ -42,7 +46,8 @@ server.tool('swit_init_project',
   'Create a new Swit video project folder (brief.md, storyboard.json, scenes/*.js, comments.json) under ~/videos and register it so it shows on Swit Home. Then edit storyboard.json and scenes/*.js directly.',
   { name: z.string().describe('Folder name, e.g. "brew-co-launch"'), title: z.string(), brief: z.string().describe('What the video is for, audience, tone, length'),
     scenes: z.array(z.object({ name: z.string(), caption: z.string().optional(), duration: z.number().positive(), note: z.string().optional() })).min(1),
-    width: z.number().default(1920), height: z.number().default(1080), fps: z.number().default(30) },
+    format: z.enum(formatIds).optional().describe('landscape 16:9, vertical 9:16 (TikTok, Reels, Shorts), square 1:1, portrait 4:5, 4k. Omit to use the default format saved in Swit settings.'),
+    width: z.number().optional(), height: z.number().optional(), fps: z.number().default(30) },
   async a => {
     const dir = path.join(ROOT, slug(a.name));
     if (await fs.stat(dir).then(() => true, () => false)) return fail(`${dir} already exists. Pick another name or edit it in place.`);
@@ -50,11 +55,28 @@ server.tool('swit_init_project',
     await fs.mkdir(path.join(dir, 'frames'), { recursive: true });
     const scenes = a.scenes.map((s, i) => ({ id: `scene-${String(i + 1).padStart(2, '0')}`, file: `scenes/scene-${String(i + 1).padStart(2, '0')}.js`, name: s.name, caption: s.caption || '', duration: s.duration, note: s.note || '', approved: false }));
     for (const s of scenes) await fs.writeFile(path.join(dir, s.file), STARTER_SCENE(s.name));
-    await writeJson(path.join(dir, 'storyboard.json'), { title: a.title, width: a.width, height: a.height, fps: a.fps, scenes });
+    const fid = a.format || await defaultFormat();
+    const f = FORMATS.find((x) => x.id === fid);
+    await writeJson(path.join(dir, 'storyboard.json'), { title: a.title, format: f.id, width: a.width || f.width, height: a.height || f.height, fps: a.fps, scenes });
     await fs.writeFile(path.join(dir, 'brief.md'), `# ${a.title}\n\n${a.brief}\n`);
     await writeJson(path.join(dir, 'comments.json'), { comments: [] });
     await register(dir);
-    return text({ dir, next: 'Edit scenes/*.js to real designs, then call swit_render_frames so the user can approve the storyboard.' });
+    return text({ dir, format: `${f.name} ${f.ratio} ${a.width || f.width}x${a.height || f.height}`, safeArea: 'Scenes get u (scale unit), vertical and safe {x,y,w,h} in their draw args. Keep text inside safe.', next: 'Edit scenes/*.js to real designs, then call swit_render_frames so the user can approve the storyboard.' });
+  });
+
+server.tool('swit_list_formats', 'List the video formats (landscape, vertical, square, portrait, 4k) with size and the platforms they suit.', {},
+  async () => text({ default: await defaultFormat(), formats: FORMATS.map(({ id, name, ratio, width, height, platforms }) => ({ id, name, ratio, width, height, platforms })) }));
+
+server.tool('swit_set_format',
+  'Change a project to another format (sets width, height and format in storyboard.json). Scenes are laid out for a specific shape, so after this re-lay out every scene for the new format, then re-render frames and the video.',
+  { project: z.string(), format: z.enum(formatIds) },
+  async ({ project, format }) => {
+    const dir = projectDir(project), file = path.join(dir, 'storyboard.json'), sb = await readJson(file, null);
+    if (!sb) return fail(`No storyboard.json in ${dir}.`);
+    const f = FORMATS.find((x) => x.id === format);
+    sb.format = f.id; sb.width = f.width; sb.height = f.height;
+    await writeJson(file, sb);
+    return text({ format: `${f.name} ${f.ratio} ${f.width}x${f.height}`, next: 'Re-lay out each scene for this shape (use u, vertical and safe from the draw args), then swit_render_frames and swit_render_video.' });
   });
 
 server.tool('swit_render_frames',

@@ -6,8 +6,9 @@ Rectangle {
     property string source
     property string label
     property bool compact: false
+    property bool fit: false   // show the whole frame (letterbox) instead of cropping, for portrait or square videos
     radius: 8
-    color: img.status === Image.Ready ? "#000" : Theme.r
+    color: img.status === Image.Ready ? (fit ? Theme.bg : "#000") : Theme.r
     border.width: img.status === Image.Ready ? 0 : 1
     border.color: Theme.l
     clip: true
@@ -15,7 +16,7 @@ Rectangle {
         id: img
         anchors.fill: parent
         source: f.source
-        fillMode: Image.PreserveAspectCrop
+        fillMode: f.fit ? Image.PreserveAspectFit : Image.PreserveAspectCrop
         asynchronous: true
         smooth: true
     }

@@ -65,6 +65,10 @@ Videos live in `~/videos` by default. Set `SWIT_VIDEOS` to change it, and `SWIT_
 
 Swit refreshes by itself when Claude changes a project, and the comments you leave are written straight to `comments.json`.
 
+## Formats
+
+Landscape 16:9 (1920x1080), vertical 9:16 (1080x1920, for TikTok, Reels and Shorts), square 1:1, portrait 4:5 and 4K. A project stores its `format` in `storyboard.json`. Set the default for new videos in Settings, or change one video from its storyboard. Scenes are laid out for one shape and get `u`, `vertical` and `safe` in their draw args; see `examples/swit-intro` and `examples/swit-intro-vertical`.
+
 ## Shortcuts, settings and help
 
 Press `?` anywhere for the help popup, which lists every shortcut with its current key. Open Settings (the gear in the top bar, or `Ctrl+,`) to record new keys for any action, change the videos folder, set the default note duration, autoplay, loop, captions, and the jump size. The About page shows the version and the changelog (`CHANGELOG.md`).

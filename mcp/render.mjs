@@ -13,7 +13,12 @@ const HARNESS = `<!doctype html><meta charset="utf-8"><body style="margin:0;back
 <script type="module">
 import { helpers } from '/__swit/helpers.js';
 const sb = await (await fetch('/storyboard.json')).json();
+const formats = await (await fetch('/__swit/formats.json')).json();
 const W = sb.width || 1920, H = sb.height || 1080;
+const fmt = formats.find((f) => f.id === sb.format) || formats.find((f) => f.width === W && f.height === H) || formats[0];
+// u: scale unit (1 at 1080 on the short side). vertical: taller than wide. safe: content box that stays clear of platform UI.
+const u = Math.min(W, H) / 1080, vertical = H > W;
+const safe = { x: Math.round(fmt.safe.left * W), y: Math.round(fmt.safe.top * H), w: Math.round(W * (1 - fmt.safe.left - fmt.safe.right)), h: Math.round(H * (1 - fmt.safe.top - fmt.safe.bottom)) };
 const c = document.getElementById('c'); c.width = W; c.height = H;
 const ctx = c.getContext('2d');
 const scenes = [];
@@ -45,12 +50,12 @@ window.renderAudio = async () => {
   for (let i = 0; i < bytes.length; i += CH) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
   return btoa(bin);
 };
-window.renderAt = async (i, t, fmt) => {
+window.renderAt = async (i, t, imgFmt) => {
   const s = sb.scenes[i], sc = scenes[i];
   ctx.save(); ctx.clearRect(0, 0, W, H);
-  await sc.draw(ctx, t, { w: W, h: H, p: Math.min(1, t / s.duration), duration: s.duration, scene: s, start: starts[i], total, gt: starts[i] + t, ...helpers });
+  await sc.draw(ctx, t, { w: W, h: H, p: Math.min(1, t / s.duration), duration: s.duration, scene: s, start: starts[i], total, gt: starts[i] + t, format: fmt.id, u, vertical, safe, ...helpers });
   ctx.restore();
-  return fmt === 'jpeg' ? c.toDataURL('image/jpeg', 0.96).slice(23) : c.toDataURL('image/png').slice(22);
+  return imgFmt === 'jpeg' ? c.toDataURL('image/jpeg', 0.96).slice(23) : c.toDataURL('image/png').slice(22);
 };
 </script>`;
 
@@ -90,6 +95,7 @@ export function startServer(dir) {
       const url = new URL(req.url, 'http://x');
       let p = decodeURIComponent(url.pathname);
       if (p === '/__swit/harness.html') { res.setHeader('content-type', 'text/html'); return res.end(HARNESS); }
+      if (p === '/__swit/formats.json') { res.setHeader('content-type', 'application/json'); return res.end(await fs.readFile(new URL('../formats.json', import.meta.url))); }
       if (p === '/__swit/helpers.js') { res.setHeader('content-type', 'text/javascript'); return res.end(HELPERS); }
       const file = path.resolve(dir, '.' + p);
       if (!file.startsWith(path.resolve(dir) + path.sep)) { res.statusCode = 403; return res.end(); }

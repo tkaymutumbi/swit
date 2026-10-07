@@ -1,6 +1,7 @@
 #include "backend.h"
 
 #include <QGuiApplication>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
@@ -12,6 +13,8 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
     QGuiApplication::setApplicationName("Swit");
     QGuiApplication::setOrganizationName("Swit");
+    QGuiApplication::setDesktopFileName("swit");
+    QGuiApplication::setWindowIcon(QIcon(":/swit/icons/swit.svg"));
     QQuickStyle::setStyle("Basic");
 
     Backend backend;

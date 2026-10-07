@@ -20,4 +20,6 @@ qt_add_qml_module(swit
         Home.qml Folder.qml Storyboard.qml Player.qml Review.qml
 )
 
+qt_add_resources(swit icons PREFIX "/swit" FILES icons/swit.svg)
+
 target_link_libraries(swit PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Multimedia)

@@ -68,3 +68,13 @@ Swit refreshes by itself when Claude changes a project, and the comments you lea
 ## Shortcuts
 
 Player: `Space` play, `I` inspector, `T` timeline, `C` captions, `M` mute, `F` fullscreen, `Left` / `Right` jump 5s. Review: `Space` play, `Left` / `Right` step 1s. `Alt+Left` goes back.
+
+## App icon and launcher
+
+The icon is `icons/swit.svg`. To add Swit to your app menu:
+
+```sh
+mkdir -p ~/.local/share/applications ~/.local/share/icons/hicolor/scalable/apps
+cp icons/swit.svg ~/.local/share/icons/hicolor/scalable/apps/
+sed "s|@EXEC@|$PWD/build/swit|" packaging/swit.desktop > ~/.local/share/applications/swit.desktop
+```

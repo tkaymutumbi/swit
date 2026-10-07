@@ -37,6 +37,7 @@ public:
     Q_INVOKABLE QString addComment(const QVariantMap &comment);
     Q_INVOKABLE void setCommentStatus(const QString &id, const QString &status);
     Q_INVOKABLE void deleteComment(const QString &id);
+    Q_INVOKABLE void updateComment(const QString &id, const QVariantMap &fields);
     Q_INVOKABLE void approveAll();
     Q_INVOKABLE void setSceneApproved(const QString &sceneId, bool approved);
     Q_INVOKABLE QString fixPrompt() const;

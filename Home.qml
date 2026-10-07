@@ -135,7 +135,7 @@ Item {
                     anchors.fill: parent; anchors.leftMargin: 18; anchors.rightMargin: 18; spacing: 16
                     Rectangle {
                         Layout.preferredWidth: 44; Layout.preferredHeight: 44; radius: 10; color: Theme.c
-                        Text { anchors.centerIn: parent; text: "▶"; color: Theme.ci; font.pixelSize: 18 }
+                        Glyph { anchors.centerIn: parent; width: 20; height: 20; color: Theme.ci }
                     }
                     ColumnLayout {
                         Layout.fillWidth: true; spacing: 2
@@ -163,7 +163,7 @@ Item {
                 visible: home.list.length > 0
                 Layout.fillWidth: true; Layout.fillHeight: true
                 readonly property int cols: Math.max(1, Math.floor(width / 280))
-                cellWidth: Math.floor(width / cols); cellHeight: 232
+                cellWidth: Math.floor(width / cols); cellHeight: Math.round((cellWidth - 16) * 9 / 16) + 130
                 clip: true
                 model: home.list
                 delegate: Item {
@@ -176,16 +176,15 @@ Item {
                         border.color: ma.containsMouse ? Theme.c : Theme.l
                         ColumnLayout {
                             anchors.fill: parent; spacing: 0
-                            Row {
-                                Layout.fillWidth: true; Layout.preferredHeight: 112
-                                Repeater {
-                                    model: 4
-                                    FrameImage {
-                                        required property int index
-                                        width: parent.width / 4; height: 112; radius: 0
-                                        compact: true
-                                        source: index < cell.modelData.frames.length ? cell.modelData.frames[index] : ""
-                                    }
+                            FrameImage {
+                                Layout.fillWidth: true; Layout.preferredHeight: width * 9 / 16
+                                radius: 0
+                                label: "No frames yet"
+                                source: cell.modelData.frames.length > 1 ? cell.modelData.frames[1] : (cell.modelData.frames.length ? cell.modelData.frames[0] : "")
+                                Rectangle {
+                                    anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.margins: 8
+                                    radius: 10; color: "#aa000000"; width: sc.implicitWidth + 16; height: 22
+                                    Text { id: sc; anchors.centerIn: parent; text: cell.modelData.sceneCount + " scenes"; color: "#fff"; font.pixelSize: 11 }
                                 }
                             }
                             ColumnLayout {

@@ -124,7 +124,8 @@ export async function renderVideo(dir, onProgress = () => {}) {
   const { page, errors, close } = await openPage(dir);
   const { W, H } = await page.evaluate('window.__info');
   const outFile = path.join(dir, 'video.mp4');
-  const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18', '-movflags', '+faststart', outFile], { stdio: ['pipe', 'inherit', 'pipe'] });
+  const tmpFile = path.join(dir, '.video.tmp.mp4'); // written here, then renamed so viewers never see a half-written file
+  const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18', '-movflags', '+faststart', tmpFile], { stdio: ['pipe', 'inherit', 'pipe'] });
   let ffErr = ''; ff.stderr.on('data', d => ffErr += d);
   const done = new Promise((res, rej) => { ff.on('close', c => c === 0 ? res() : rej(new Error('ffmpeg failed: ' + ffErr))); ff.on('error', rej); });
   const total = sb.scenes.reduce((a, s) => a + Math.round(s.duration * fps), 0);
@@ -140,7 +141,8 @@ export async function renderVideo(dir, onProgress = () => {}) {
     }
     ff.stdin.end(); await done;
     if (errors.length) throw new Error('Scene errors: ' + errors.join('; '));
-  } catch (e) { ff.kill(); throw e; } finally { await close(); }
+  } catch (e) { ff.kill(); await fs.rm(tmpFile, { force: true }); throw e; } finally { await close(); }
+  await fs.rename(tmpFile, outFile);
   const seconds = total / fps;
   return { file: outFile, seconds, width: W, height: H, fps };
 }

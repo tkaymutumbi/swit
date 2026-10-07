@@ -19,18 +19,20 @@ Item {
 
     function toggle() { mp.playbackState === MediaPlayer.PlayingState ? mp.pause() : mp.play() }
     function seek(s) { mp.position = Math.max(0, Math.min(total, s)) * 1000 }
-    function load() { stamp = proj.updatedMs || 0; var p = mp.position; mp.source = proj.videoUrl || ""; if (p > 0) mp.position = p }
+    property real resumeAt: 0
+    function load() { stamp = proj.updatedMs || 0; if (mp.position > 0) resumeAt = mp.position; mp.stop(); mp.source = ""; reload.restart() }
+    Timer { id: reload; interval: 350; onTriggered: mp.source = pl.proj.videoUrl || "" }
 
     onVisibleChanged: { if (visible) { if (stamp !== (proj.updatedMs || 0) || mp.source.toString() === "") load() } else mp.pause() }
     Connections { target: backend; function onProjectChanged() { if (pl.visible && pl.stamp !== (pl.proj.updatedMs || 0)) pl.load() } }
-    Component.onCompleted: load()
+    Component.onCompleted: if (visible) load()
 
     MediaPlayer {
         id: mp
         videoOutput: vo
         audioOutput: AudioOutput { id: ao; muted: false }
         loops: loopChip.on ? MediaPlayer.Infinite : 1
-        onMediaStatusChanged: if (mediaStatus === MediaPlayer.LoadedMedia && playbackState === MediaPlayer.StoppedState) pause()
+        onMediaStatusChanged: if (mediaStatus === MediaPlayer.LoadedMedia) { if (pl.resumeAt > 0) { position = pl.resumeAt; pl.resumeAt = 0 } pause() }
     }
 
     Shortcut { enabled: pl.visible; sequence: "Space"; onActivated: pl.toggle() }
@@ -81,7 +83,7 @@ Item {
                     spacing: 12
                     Rectangle {
                         Layout.preferredWidth: 34; Layout.preferredHeight: 34; radius: 17; color: Theme.c
-                        Text { anchors.centerIn: parent; text: mp.playbackState === MediaPlayer.PlayingState ? "⏸" : "▶"; color: Theme.ci; font.pixelSize: 14 }
+                        Glyph { anchors.centerIn: parent; width: 16; height: 16; color: Theme.ci; playing: mp.playbackState === MediaPlayer.PlayingState }
                         MouseArea { anchors.fill: parent; onClicked: pl.toggle(); cursorShape: Qt.PointingHandCursor }
                     }
                     Text { text: Theme.fmt(pl.secs) + " / " + Theme.fmt(pl.total); color: Theme.t; font.family: Theme.mono; font.pixelSize: 12 }

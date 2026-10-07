@@ -19,7 +19,8 @@ Item {
     property real stamp: 0
 
     function seek(s) { mp.pause(); mp.position = Math.max(0, Math.min(total, s)) * 1000 }
-    function load() { stamp = proj.updatedMs || 0; mp.source = proj.videoUrl || "" }
+    function load() { stamp = proj.updatedMs || 0; mp.stop(); mp.source = ""; reload.restart() }
+    Timer { id: reload; interval: 350; onTriggered: mp.source = rv.proj.videoUrl || "" }
     function numberOf(id) { var cs = backend.comments; for (var i = 0; i < cs.length; i++) if (cs[i].id === id) return i + 1; return 0 }
     function sceneIndexOf(c) {
         if (c.scene) for (var i = 0; i < scenes.length; i++) if (scenes[i].id === c.scene) return i
@@ -30,12 +31,35 @@ Item {
         for (var i = 0; i < cs.length; i++) if (filter === "all" || cs[i].status === filter) out.push(cs[i])
         return out
     }
+    function shown(c) {
+        var span = c.span || "time"
+        if (span === "video") return true
+        if (span === "scene") { var s = scenes[sceneIndexOf(c)]; return !!s && secs >= s.start && secs < s.start + s.duration }
+        var d = c.duration !== undefined ? c.duration : 3
+        return secs >= c.time - 0.05 && secs <= c.time + d
+    }
+    function spanLabel(c) {
+        var span = c.span || "time"
+        return span === "scene" ? "Scene" : span === "video" ? "Video" : (c.duration !== undefined ? c.duration : 3) + "s"
+    }
+    function rangeOf(c) {
+        var span = c.span || "time"
+        if (span === "video") return total
+        if (span === "scene") { var s = scenes[sceneIndexOf(c)]; return s ? s.start + s.duration - c.time : 0 }
+        return c.duration !== undefined ? c.duration : 3
+    }
+    function nextSpan(c) {
+        var opts = ["1s", "3s", "5s", "Scene", "Video"], i = opts.indexOf(spanLabel(c)), n = opts[(i + 1) % opts.length]
+        if (n === "Scene") return { span: "scene" }
+        if (n === "Video") return { span: "video" }
+        return { span: "time", duration: parseInt(n) }
+    }
     readonly property var visibleShapes: {
         var out = [], cs = backend.comments
         for (var i = 0; i < cs.length; i++) {
             var c = cs[i]
             if (c.status !== "open" || c.time === undefined || (c.kind !== "pin" && c.kind !== "box" && c.kind !== "arrow" && c.kind !== "pen")) continue
-            if (c.id === selectedId || Math.abs(c.time - secs) < 0.75) out.push(c)
+            if (c.id === selectedId || shown(c)) out.push(c)
         }
         return out
     }
@@ -67,6 +91,9 @@ Item {
                 c.x1 = a.x; c.y1 = a.y; c.x2 = b.x; c.y2 = b.y
             }
             c.scene = rv.scenes.length ? rv.scenes[Theme.sceneAt(rv.scenes, p.time)].id : ""
+            if (composer.span === "Scene") c.span = "scene"
+            else if (composer.span === "Video") c.span = "video"
+            else { c.span = "time"; c.duration = parseInt(composer.span) }
             rv.selectedId = backend.addComment(c)
             rv.pending = null; rv.draft = null
         }
@@ -185,7 +212,7 @@ Item {
                     spacing: 12
                     Rectangle {
                         Layout.preferredWidth: 30; Layout.preferredHeight: 30; radius: 15; color: Theme.r
-                        Text { anchors.centerIn: parent; text: mp.playbackState === MediaPlayer.PlayingState ? "⏸" : "▶"; color: Theme.t; font.pixelSize: 12 }
+                        Glyph { anchors.centerIn: parent; width: 14; height: 14; color: Theme.t; playing: mp.playbackState === MediaPlayer.PlayingState }
                         MouseArea { anchors.fill: parent; onClicked: mp.playbackState === MediaPlayer.PlayingState ? mp.pause() : mp.play(); cursorShape: Qt.PointingHandCursor }
                     }
                     Text { text: Theme.fmt(rv.secs); color: Theme.t; font.family: Theme.mono; font.pixelSize: 12 }
@@ -194,6 +221,16 @@ Item {
                         Layout.fillWidth: true; Layout.preferredHeight: 22
                         Rectangle { anchors.verticalCenter: parent.verticalCenter; width: parent.width; height: 6; radius: 3; color: Theme.r }
                         Rectangle { anchors.verticalCenter: parent.verticalCenter; width: parent.width * rv.secs / rv.total; height: 6; radius: 3; color: Theme.c }
+                        Repeater {
+                            model: backend.comments
+                            Rectangle {
+                                required property var modelData
+                                visible: modelData.time !== undefined && modelData.status === "open" && modelData.kind !== "code"
+                                x: sc.width * (modelData.time || 0) / rv.total
+                                width: Math.max(0, Math.min(sc.width - x, sc.width * rv.rangeOf(modelData) / rv.total))
+                                anchors.verticalCenter: parent.verticalCenter; height: 6; radius: 3; color: Theme.c; opacity: 0.45
+                            }
+                        }
                         Repeater {
                             model: backend.comments
                             Rectangle {
@@ -249,6 +286,11 @@ Item {
                                     Text {
                                         color: Theme.c; font.family: Theme.mono; font.pixelSize: 12; Layout.fillWidth: true; elide: Text.ElideMiddle
                                         text: th.modelData.kind === "code" ? th.modelData.file.replace("scenes/", "") + ":" + th.modelData.line : Theme.fmt(th.modelData.time || 0)
+                                    }
+                                    Text {
+                                        visible: th.modelData.kind !== "code"
+                                        text: "Shows " + rv.spanLabel(th.modelData); color: Theme.c; font.pixelSize: 12
+                                        MouseArea { anchors.fill: parent; anchors.margins: -4; cursorShape: Qt.PointingHandCursor; onClicked: backend.updateComment(th.modelData.id, rv.nextSpan(th.modelData)) }
                                     }
                                     Text { text: th.modelData.status === "open" ? "Resolve" : "Reopen"; color: Theme.s; font.pixelSize: 12
                                            MouseArea { anchors.fill: parent; anchors.margins: -4; cursorShape: Qt.PointingHandCursor; onClicked: backend.setCommentStatus(th.modelData.id, th.modelData.status === "open" ? "resolved" : "open") } }

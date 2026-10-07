@@ -30,7 +30,7 @@ After approval: `swit_render_frames` for the remaining scenes if wanted, then `s
 ## 4. Fix comments
 
 When asked to "read the comments" or "fix what is in the comments":
-1. `swit_list_comments` (status open). Each has scene, sceneFile, line (code comments), time and a normalized region x/y/w/h (0..1 of the frame) for drawn ones.
+1. `swit_list_comments` (status open). Each has scene, sceneFile, line (code comments), time and a normalized region x/y/w/h (0..1 of the frame) for drawn ones. Drawn notes also carry `span` (`time`, `scene` or `video`) and `duration` in seconds: they were meant to apply only for that stretch, so change only what is visible then.
 2. Edit the scene files (or storyboard.json) to address each one. Keep unrelated code unchanged.
 3. `swit_render_frames` for touched scenes, then `swit_render_video`.
 4. `swit_resolve_comment` for each fixed comment with a one line note. Leave a comment open and say why if it is unclear.
@@ -52,5 +52,8 @@ export default {
 - storyboard.json fields: title, width, height, fps, scenes[{id, file, name, caption, duration, note, previewAt}].
 
 ## Quality bar
+
+Never use emojis or font symbols (check marks, arrows, play glyphs) in scene text or UI. Draw icons as paths or shapes. Render to a temp file and rename, so Swit never loads a half-written video (the MCP render tool already does this).
+
 
 Pro means: one idea per scene, large type (96px+ for headlines at 1080p), consistent palette of 3 colours, eased motion (never linear), 3 to 6 seconds per scene, a clear end card with the call to action.

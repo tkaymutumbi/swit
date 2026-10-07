@@ -169,7 +169,7 @@ Item {
                                        text: ln.cnt > 0 ? ln.cnt : "+"; color: Theme.c; font.pixelSize: 12; font.bold: true }
                                 MouseArea {
                                     id: lma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                                    onClicked: { sb.pendingLine = ln.n; composer.ask((sb.scene ? sb.scene.file : "") + ":" + ln.n) }
+                                    onClicked: { sb.pendingLine = ln.n; composer.ask((sb.scene ? sb.scene.file : "") + ":" + ln.n, false) }
                                 }
                             }
                         }

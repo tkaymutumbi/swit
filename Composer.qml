@@ -6,6 +6,9 @@ import QtQuick.Layouts
 Popup {
     id: pop
     property string label: ""
+    property bool showSpan: true
+    property string span: "3s"
+    readonly property var spanOptions: ["1s", "3s", "5s", "Scene", "Video"]
     signal accepted(string text)
     signal cancelled()
     modal: true
@@ -13,7 +16,7 @@ Popup {
     width: 420
     padding: 18
     closePolicy: Popup.CloseOnEscape
-    function ask(l) { label = l; field.text = ""; open(); field.forceActiveFocus() }
+    function ask(l, withSpan) { label = l; showSpan = withSpan !== false; span = "3s"; field.text = ""; open(); field.forceActiveFocus() }
     onClosed: if (!accepting) cancelled()
     property bool accepting: false
     background: Rectangle { radius: 14; color: Theme.p; border.color: Theme.l }
@@ -33,6 +36,18 @@ Popup {
             font.pixelSize: 14
             background: Rectangle { radius: 10; color: Theme.bg; border.color: field.activeFocus ? Theme.c : Theme.l }
             Keys.onPressed: (e) => { if ((e.key === Qt.Key_Return || e.key === Qt.Key_Enter) && (e.modifiers & Qt.ControlModifier)) { e.accepted = true; save.clicked() } }
+        }
+        ColumnLayout {
+            visible: pop.showSpan
+            spacing: 6
+            Text { text: "SHOW THIS NOTE FOR"; color: Theme.s; font.pixelSize: 11; font.letterSpacing: 1.1 }
+            Row {
+                spacing: 6
+                Repeater {
+                    model: pop.spanOptions
+                    Chip { required property string modelData; text: modelData; on: pop.span === modelData; onClicked: pop.span = modelData }
+                }
+            }
         }
         RowLayout {
             Text { text: "Ctrl+Enter to save"; color: Theme.s; font.pixelSize: 12; font.family: Theme.sans }

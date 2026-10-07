@@ -278,6 +278,20 @@ void Backend::setCommentStatus(const QString &id, const QString &status)
     refresh();
 }
 
+void Backend::updateComment(const QString &id, const QVariantMap &fields)
+{
+    QJsonArray arr = readComments();
+    const QJsonObject patch = QJsonObject::fromVariantMap(fields);
+    for (int i = 0; i < arr.size(); ++i) {
+        QJsonObject o = arr[i].toObject();
+        if (o.value("id").toString() != id) continue;
+        for (auto it = patch.begin(); it != patch.end(); ++it) o[it.key()] = it.value();
+        arr[i] = o;
+    }
+    writeComments(arr);
+    refresh();
+}
+
 void Backend::deleteComment(const QString &id)
 {
     QJsonArray arr = readComments(), out;

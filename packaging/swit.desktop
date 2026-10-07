@@ -2,7 +2,7 @@
 Type=Application
 Name=Swit
 Comment=Video studio: review storyboards, videos and comments
-Exec=@EXEC@
+Exec=swit
 Icon=swit
 Terminal=false
 Categories=AudioVideo;Video;

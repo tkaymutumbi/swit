@@ -45,6 +45,9 @@ Item {
         MouseArea { id: ma; anchors.fill: parent; hoverEnabled: true; onClicked: n.clicked(); cursorShape: Qt.PointingHandCursor }
     }
 
+    Act { action: "home.search"; active: home.visible; onTriggered: search.forceActiveFocus() }
+    Act { action: "home.openFolder"; active: home.visible; onTriggered: Nav.addFolderRequested() }
+
     RowLayout {
         anchors.fill: parent
         spacing: 0
@@ -117,6 +120,8 @@ Item {
                     }
                 }
                 Btn { text: "Open folder"; onClicked: Nav.addFolderRequested() }
+                IconButton { kind: "help"; tip: "Help and shortcuts"; onClicked: Nav.helpRequested() }
+                IconButton { kind: "gear"; tip: "Settings"; onClicked: Nav.settingsRequested("general") }
             }
 
             Row {

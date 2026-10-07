@@ -33,6 +33,10 @@ Item {
     }
     property int pendingLine: 0
 
+    Act { action: "story.prev"; active: sb.visible; onTriggered: Nav.storyScene = Math.max(0, sb.idx - 1) }
+    Act { action: "story.next"; active: sb.visible; onTriggered: Nav.storyScene = Math.min(sb.scenes.length - 1, sb.idx + 1) }
+    Act { action: "story.approve"; active: sb.visible && sb.scene !== null; onTriggered: backend.setSceneApproved(sb.scene.id, !sb.scene.approved) }
+
     Composer {
         id: composer
         onAccepted: (text) => backend.addComment({ kind: "code", scene: sb.scene.id, file: sb.scene.file, line: sb.pendingLine, text: text })

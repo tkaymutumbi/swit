@@ -75,9 +75,14 @@ Item {
         audioOutput: AudioOutput {}
         onMediaStatusChanged: if (mediaStatus === MediaPlayer.LoadedMedia) { rv.seek(Nav.reviewTime) }
     }
-    Shortcut { enabled: rv.visible; sequence: "Space"; onActivated: mp.playbackState === MediaPlayer.PlayingState ? mp.pause() : mp.play() }
-    Shortcut { enabled: rv.visible; sequence: "Left"; onActivated: rv.seek(rv.secs - 1) }
-    Shortcut { enabled: rv.visible; sequence: "Right"; onActivated: rv.seek(rv.secs + 1) }
+    Act { action: "review.play"; active: rv.visible; onTriggered: mp.playbackState === MediaPlayer.PlayingState ? mp.pause() : mp.play() }
+    Act { action: "review.back"; active: rv.visible; onTriggered: rv.seek(rv.secs - 1) }
+    Act { action: "review.forward"; active: rv.visible; onTriggered: rv.seek(rv.secs + 1) }
+    Act { action: "review.pin"; active: rv.visible; onTriggered: rv.tool = "pin" }
+    Act { action: "review.arrow"; active: rv.visible; onTriggered: rv.tool = "arrow" }
+    Act { action: "review.box"; active: rv.visible; onTriggered: rv.tool = "box" }
+    Act { action: "review.pen"; active: rv.visible; onTriggered: rv.tool = "pen" }
+    Act { action: "review.note"; active: rv.visible; onTriggered: { rv.showPanel = true; note.forceActiveFocus() } }
 
     Composer {
         id: composer
@@ -105,12 +110,12 @@ Item {
         spacing: 0
         TopBar {
             crumbs: [{ text: "Home", page: "home" }, { text: rv.proj.name || "", page: "folder" }, { text: "Review", page: "review" }]
-            Row {
+            RowLayout {
                 visible: !(rv.compact && rv.showPanel)
                 spacing: 4
                 Repeater {
                     model: [["pin", "Pin"], ["arrow", "Arrow"], ["box", "Box"], ["pen", "Pen"]]
-                    Chip { required property var modelData; text: modelData[1]; on: rv.tool === modelData[0]; onClicked: rv.tool = modelData[0] }
+                    Chip { required property var modelData; Layout.preferredWidth: implicitWidth; Layout.preferredHeight: 24; text: modelData[1]; on: rv.tool === modelData[0]; onClicked: rv.tool = modelData[0] }
                 }
             }
             Btn { visible: rv.compact; text: rv.showPanel ? "Video" : "Comments " + (rv.proj.openComments || 0); onClicked: rv.showPanel = !rv.showPanel }
@@ -200,7 +205,7 @@ Item {
                                 if (!rv.draft) return
                                 var d = rv.draft
                                 var a = d.pts[0], b = d.pts[d.pts.length - 1]
-                                if (d.kind !== "pin" && Math.abs(a.x - b.x) + Math.abs(a.y - b.y) < 0.01) d = { kind: "pin", pts: [a] }
+                                if (d.kind !== "pin" && d.kind !== "pen" && Math.abs(a.x - b.x) + Math.abs(a.y - b.y) < 0.01) d = { kind: "pin", pts: [a] }
                                 rv.pending = { kind: d.kind, pts: d.pts, time: rv.secs }
                                 rv.draft = d
                                 composer.ask(Theme.fmt(rv.secs) + " · " + d.kind)
@@ -268,7 +273,7 @@ Item {
                         spacing: 10; clip: true
                         model: rv.listed
                         boundsBehavior: Flickable.StopAtBounds
-                        footer: Text { visible: rv.listed.length === 0; width: lv.width; topPadding: 20; horizontalAlignment: Text.AlignHCenter; color: Theme.s; font.pixelSize: 13; text: "No comments here.\nDraw on the video or click a code line in the storyboard." }
+                        footer: Text { visible: rv.listed.length === 0; width: lv.width; topPadding: 20; wrapMode: Text.WordWrap; horizontalAlignment: Text.AlignHCenter; color: Theme.s; font.pixelSize: 13; text: "No comments here.\nDraw on the video or click a code line in the storyboard." }
                         delegate: Rectangle {
                             id: th
                             required property var modelData

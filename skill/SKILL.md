@@ -49,7 +49,17 @@ export default {
 - Draw everything from t alone (no state, no Date.now, no Math.random without a fixed seed) so any frame can be rendered on its own.
 - Fade or slide in the first ~0.4s and out in the last ~0.3s for clean cuts. Keep text inside a 6% safe margin.
 - Images: put files in `assets/` and load with `new Image()` inside an async `draw`, awaiting `img.decode()`. Fonts: `@font-face` is not available, use system stacks or load a local file via the FontFace API from `assets/`.
-- storyboard.json fields: title, width, height, fps, scenes[{id, file, name, caption, duration, note, previewAt}].
+- Extra draw args: `gt` (global seconds since the video started), `start` (this scene's start), `total`. Use `gt` for backgrounds and effects that must flow across scene cuts.
+- storyboard.json fields: title, width, height, fps, audio (optional, e.g. "audio.js"), scenes[{id, file, name, caption, duration, note, previewAt}].
+- Keep `previewAt` (0..1) away from the last 10% of a scene when it ends in a transition, so the preview frame is not a wipe.
+
+## Sound
+
+Set `"audio": "audio.js"` in storyboard.json. The module's default export has `build(ctx, { duration, scenes, starts, sr })`, where `ctx` is an `OfflineAudioContext` (stereo, 44.1 kHz). Schedule oscillators, noise, filters and a convolution reverb at absolute times, locked to the visuals (use `starts[i]` for scene starts). `swit_render_video` renders it offline and muxes it as AAC. Good baseline: a pad with a slow filter, bass, a kick that ducks the pad, a few hats, whooshes on cuts, blips on UI pops, keyboard clicks while text types, a bell on success, and a master fade out. Use a seeded random function so renders repeat exactly. Web Audio compressors add makeup gain, so put the final level control (and the fade out) after the compressor and limiter. Check the mix with `swit_render_audio` and `ffmpeg -i audio-preview.wav -af ebur128=peak=true -f null -`: aim for about -14 LUFS integrated and a peak under -1 dBFS. A peak at 0.0 dB means clipping.
+
+## Premium look
+
+A reference project lives in `examples/swit-intro` in the Swit repo: a shared `_kit.js` (moving light background, grain, glass panels, blur-in text, spring easing, skewed wipe transitions across cuts, cursor and click ripple) plus six scenes and an `audio.js`. Copy the kit into new projects and build scenes from it.
 
 ## Quality bar
 

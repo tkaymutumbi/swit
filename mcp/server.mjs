@@ -6,7 +6,7 @@ import os from 'node:os';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { renderFrames, renderVideo } from './render.mjs';
+import { renderFrames, renderVideo, renderAudioFile } from './render.mjs';
 
 const ROOT = process.env.SWIT_VIDEOS || path.join(os.homedir(), 'videos');
 const REGISTRY = path.join(os.homedir(), '.config', 'swit', 'projects.json');
@@ -70,6 +70,14 @@ server.tool('swit_render_video',
   async ({ project }) => {
     const dir = projectDir(project);
     try { const r = await renderVideo(dir); await register(dir); return text({ ...r, open: 'Open Swit, go Home, then open this folder.' }); } catch (e) { return fail(String(e.message || e)); }
+  });
+
+server.tool('swit_render_audio',
+  'Render only the soundtrack (audio.js) to audio-preview.wav in the project folder. Fast way to check the mix before a full video render. Check levels with ffmpeg volumedetect: peak below -1 dB, mean near -18 dB.',
+  { project: z.string() },
+  async ({ project }) => {
+    const dir = projectDir(project);
+    try { return text({ file: await renderAudioFile(dir, path.join(dir, 'audio-preview.wav')) }); } catch (e) { return fail(String(e.message || e)); }
   });
 
 server.tool('swit_list_comments',

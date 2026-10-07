@@ -1,6 +1,7 @@
 #include "backend.h"
 
 #include <QClipboard>
+#include <QKeySequence>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
@@ -52,13 +53,90 @@ QString humanTime(const QDateTime &t)
 }
 }
 
-Backend::Backend(QObject *parent) : QObject(parent)
+#ifndef SWIT_VERSION
+#define SWIT_VERSION "0.0.0"
+#endif
+
+QString Backend::version() const { return QStringLiteral(SWIT_VERSION); }
+
+Backend::Backend(QObject *parent) : QObject(parent), m_settings("Swit", "Swit")
 {
-    m_root = qEnvironmentVariableIsEmpty("SWIT_VIDEOS") ? QDir::homePath() + "/videos" : qEnvironmentVariable("SWIT_VIDEOS");
+    m_root = !qEnvironmentVariableIsEmpty("SWIT_VIDEOS") ? qEnvironmentVariable("SWIT_VIDEOS")
+           : m_settings.value("videosRoot", QDir::homePath() + "/videos").toString();
     m_poll.setInterval(1500);
     connect(&m_poll, &QTimer::timeout, this, [this] { if (signature() != m_sig) refresh(); });
     m_poll.start();
     refresh();
+}
+
+void Backend::setVideosRoot(const QString &urlOrPath)
+{
+    const QString path = urlOrPath.startsWith("file:") ? QUrl(urlOrPath).toLocalFile() : urlOrPath;
+    if (path.isEmpty() || path == m_root) return;
+    m_root = path;
+    m_settings.setValue("videosRoot", path);
+    emit videosRootChanged();
+    refresh();
+}
+
+QVariantMap Backend::settings() const
+{
+    QVariantMap out;
+    m_settings.beginGroup("prefs");
+    for (const auto &k : m_settings.childKeys()) out[k] = m_settings.value(k);
+    m_settings.endGroup();
+    return out;
+}
+
+void Backend::setSetting(const QString &key, const QVariant &value)
+{
+    m_settings.setValue("prefs/" + key, value);
+}
+
+QVariantMap Backend::bindings() const
+{
+    QVariantMap out;
+    m_settings.beginGroup("keys");
+    for (const auto &k : m_settings.childKeys()) out[QString(k).replace('|', '.')] = m_settings.value(k);
+    m_settings.endGroup();
+    return out;
+}
+
+void Backend::setBinding(const QString &id, const QString &sequence)
+{
+    m_settings.setValue("keys/" + QString(id).replace('.', '|'), sequence);
+}
+
+void Backend::clearBinding(const QString &id)
+{
+    m_settings.remove("keys/" + QString(id).replace('.', '|'));
+}
+
+void Backend::resetBindings()
+{
+    m_settings.remove("keys");
+}
+
+// Turn a key event into the portable text a QML Shortcut understands.
+QString Backend::keySequence(int key, int modifiers, const QString &text) const
+{
+    switch (key) {
+    case Qt::Key_Shift: case Qt::Key_Control: case Qt::Key_Alt: case Qt::Key_Meta: case Qt::Key_AltGr: return {};
+    default: break;
+    }
+    const bool printableSymbol = text.size() == 1 && text[0].isPrint() && !text[0].isLetterOrNumber() && !text[0].isSpace();
+    if (printableSymbol) {
+        const int mods = modifiers & ~Qt::ShiftModifier;
+        const QString mod = QKeySequence(mods).toString(QKeySequence::PortableText);
+        return mod + text;
+    }
+    return QKeySequence(modifiers | key).toString(QKeySequence::PortableText);
+}
+
+QString Backend::changelog() const
+{
+    QFile f(":/swit/CHANGELOG.md");
+    return f.open(QIODevice::ReadOnly) ? QString::fromUtf8(f.readAll()) : QString();
 }
 
 QStringList Backend::registered() const
@@ -89,6 +167,8 @@ QString Backend::signature() const
     for (const auto &d : dirs) {
         for (const char *n : {"storyboard.json", "comments.json", "video.mp4"})
             sig += QString::number(QFileInfo(d + "/" + n).lastModified().toMSecsSinceEpoch()) + ",";
+        for (const auto &fi : QDir(d + "/scenes").entryInfoList({"*.js"}, QDir::Files, QDir::Name))
+            sig += fi.fileName() + ":" + QString::number(fi.lastModified().toMSecsSinceEpoch()) + ",";
         for (const auto &fi : QDir(d + "/frames").entryInfoList(QDir::Files))
             sig += QString::number(fi.lastModified().toMSecsSinceEpoch()) + ",";
         sig += ";";

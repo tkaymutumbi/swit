@@ -6,6 +6,8 @@ QtObject {
     property real reviewTime: 0
     property int storyScene: 0
     signal addFolderRequested()
+    signal helpRequested()
+    signal settingsRequested(string tab)
 
     function go(p) { page = p }
     function open(dir, p) { backend.openProject(dir); page = p || "folder" }

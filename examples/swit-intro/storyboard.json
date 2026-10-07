@@ -1,0 +1,69 @@
+{
+  "fps": 30,
+  "height": 1080,
+  "scenes": [
+    {
+      "approved": true,
+      "caption": "Videos take an editor, a timeline and a free weekend.",
+      "duration": 4,
+      "file": "scenes/scene-01.js",
+      "id": "scene-01",
+      "name": "Hook",
+      "note": "Three pain lines, then: What if Claude just wrote it?",
+      "previewAt": 0.8
+    },
+    {
+      "approved": true,
+      "caption": "Swit is a video studio where Claude writes the video as code.",
+      "duration": 5,
+      "file": "scenes/scene-02.js",
+      "id": "scene-02",
+      "name": "What is Swit",
+      "note": "App icon + name, three feature pills",
+      "previewAt": 0.86
+    },
+    {
+      "approved": true,
+      "caption": "Ask for a video. Claude asks a few questions first.",
+      "duration": 5,
+      "file": "scenes/scene-03.js",
+      "id": "scene-03",
+      "name": "Ask",
+      "note": "Typed prompt, then question chips",
+      "previewAt": 0.86
+    },
+    {
+      "approved": true,
+      "caption": "Check the storyboard before anything renders.",
+      "duration": 5,
+      "file": "scenes/scene-04.js",
+      "id": "scene-04",
+      "name": "Storyboard",
+      "note": "Five frame cards, three drawn, two sketched",
+      "previewAt": 0.86
+    },
+    {
+      "approved": true,
+      "caption": "Comment on the video or the code. Claude fixes it.",
+      "duration": 6,
+      "file": "scenes/scene-05.js",
+      "id": "scene-05",
+      "name": "Review",
+      "note": "Box annotation, comment, fix, resolved",
+      "previewAt": 0.66
+    },
+    {
+      "approved": true,
+      "caption": "Swit. Video as code, reviewed by you.",
+      "duration": 5,
+      "file": "scenes/scene-06.js",
+      "id": "scene-06",
+      "name": "End",
+      "note": "Icon, tagline, GitHub link",
+      "previewAt": 0.7
+    }
+  ],
+  "title": "What is Swit",
+  "width": 1920,
+  "audio": "audio.js"
+}

@@ -16,7 +16,7 @@ Popup {
     width: 420
     padding: 18
     closePolicy: Popup.CloseOnEscape
-    function ask(l, withSpan) { label = l; showSpan = withSpan !== false; span = "3s"; field.text = ""; open(); field.forceActiveFocus() }
+    function ask(l, withSpan) { label = l; showSpan = withSpan !== false; span = Prefs.get("noteSpan"); field.text = ""; open(); field.forceActiveFocus() }
     onClosed: if (!accepting) cancelled()
     property bool accepting: false
     background: Rectangle { radius: 14; color: Theme.p; border.color: Theme.l }

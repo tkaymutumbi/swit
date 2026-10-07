@@ -37,16 +37,18 @@ Item {
         RowLayout {
             Layout.fillWidth: true; Layout.fillHeight: true; spacing: 0
             ColumnLayout {
+                id: leftCol
                 Layout.fillWidth: true; Layout.fillHeight: true
                 Layout.margins: folder.narrow ? 14 : 28; Layout.topMargin: 22
                 spacing: 12
                 RowLayout {
+                    Layout.fillWidth: true; Layout.alignment: Qt.AlignTop
                     Text { text: folder.proj.title || ""; color: Theme.t; font.pixelSize: 22; font.weight: Font.DemiBold; Layout.fillWidth: true }
                     Text { text: folder.rows.length + " items"; color: Theme.s; font.family: Theme.mono; font.pixelSize: 12 }
                 }
                 Rectangle {
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    Layout.maximumHeight: 36 + folder.rows.length * 46 + 2
+                    Layout.fillWidth: true; Layout.alignment: Qt.AlignTop
+                    Layout.preferredHeight: Math.max(120, Math.min(36 + folder.rows.length * 46 + 2, leftCol.height - 60))
                     radius: 12; color: Theme.p; border.color: Theme.l; clip: true
                     readonly property real nameW: folder.narrow ? width - 28 : width - 14 - 3 * 12 - 330 - 14
                     ListView {
@@ -94,7 +96,7 @@ Item {
                         }
                     }
                 }
-                Item { Layout.fillHeight: true }
+                Item { Layout.fillWidth: true; Layout.fillHeight: true; Layout.preferredHeight: 0 }
             }
 
             Rectangle {

@@ -65,16 +65,10 @@ Videos live in `~/videos` by default. Set `SWIT_VIDEOS` to change it, and `SWIT_
 
 Swit refreshes by itself when Claude changes a project, and the comments you leave are written straight to `comments.json`.
 
-## Shortcuts
+## Shortcuts, settings and help
 
-Player: `Space` play, `I` inspector, `T` timeline, `C` captions, `M` mute, `F` fullscreen, `Left` / `Right` jump 5s. Review: `Space` play, `Left` / `Right` step 1s. `Alt+Left` goes back.
+Press `?` anywhere for the help popup, which lists every shortcut with its current key. Open Settings (the gear in the top bar, or `Ctrl+,`) to record new keys for any action, change the videos folder, set the default note duration, autoplay, loop, captions, and the jump size. The About page shows the version and the changelog (`CHANGELOG.md`).
 
-## Install, app icon and launcher
+## Sound
 
-The icon is `icons/swit.svg`. To add Swit to your app menu:
-
-```sh
-cmake --install build --prefix ~/.local   # binary, icon and launcher
-```
-
-Make sure `~/.local/bin` is on your PATH.
+Add `"audio": "audio.js"` to `storyboard.json`. The file builds the soundtrack with the Web Audio API in an `OfflineAudioContext`, and the renderer adds it to the MP4. See `examples/swit-intro/audio.js`.

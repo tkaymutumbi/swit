@@ -16,6 +16,9 @@ ApplicationWindow {
 
     // Dev option: SWIT_START="<project dir>|<page>[|seconds]" opens straight into a screen.
     Component.onCompleted: {
+        Prefs.init(backend)
+        var dlg = backend.env("SWIT_DIALOG")   // dev option: help | settings | keys | about
+        if (dlg) Qt.callLater(function () { dlg === "help" ? Nav.helpRequested() : Nav.settingsRequested(dlg === "settings" ? "general" : dlg) })
         var s = backend.env("SWIT_START")
         if (!s) return
         var a = s.split("|")
@@ -64,5 +67,27 @@ ApplicationWindow {
         title: "Open a Swit video folder"
         onAccepted: backend.addFolder(selectedFolder)
     }
-    Shortcut { sequence: "Alt+Left"; onActivated: Nav.back() }
+    HelpDialog { id: helpDialog }
+    SettingsDialog { id: settingsDialog }
+    Connections {
+        target: Nav
+        function onHelpRequested() { settingsDialog.close(); helpDialog.open() }
+        function onSettingsRequested(tab) { helpDialog.close(); settingsDialog.openTab(tab) }
+    }
+    readonly property bool dialogOpen: helpDialog.opened || settingsDialog.opened
+    onDialogOpenChanged: Prefs.blocked = dialogOpen
+
+    // Catches raw key presses when no text field has focus (see Act.qml).
+    Item {
+        id: keyCatcher
+        anchors.fill: parent
+        focus: true
+        Keys.onPressed: (e) => { if (Prefs.keyEvent(e)) e.accepted = true }
+    }
+    onActiveFocusItemChanged: if (!activeFocusItem) keyCatcher.forceActiveFocus()
+    Shortcut { enabled: !win.dialogOpen; sequence: "F1"; onActivated: Nav.helpRequested() }
+    Act { action: "help.open"; active: !win.dialogOpen; onTriggered: Nav.helpRequested() }
+    Act { action: "settings.open"; active: !win.dialogOpen; onTriggered: Nav.settingsRequested("general") }
+    Act { action: "nav.back"; active: !win.dialogOpen; onTriggered: Nav.back() }
+    Act { action: "nav.home"; active: !win.dialogOpen; onTriggered: Nav.home() }
 }

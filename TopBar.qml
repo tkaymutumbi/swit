@@ -49,5 +49,7 @@ Rectangle {
         }
         Item { Layout.fillWidth: true }
         RowLayout { id: right; spacing: 8 }
+        IconButton { kind: "help"; tip: "Help and shortcuts"; onClicked: Nav.helpRequested() }
+        IconButton { kind: "gear"; tip: "Settings"; onClicked: Nav.settingsRequested("general") }
     }
 }

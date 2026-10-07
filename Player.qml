@@ -12,9 +12,10 @@ Item {
     readonly property real total: Math.max(0.001, mp.duration > 0 ? mp.duration / 1000 : (proj.total || 0))
     readonly property int cur: Theme.sceneAt(scenes, secs)
     readonly property var scene: scenes.length ? scenes[cur] : null
-    property bool showInspector: true
-    property bool showTimeline: true
-    property bool captions: false
+    property bool showInspector: width >= 1100   // starting state only; I and T always toggle
+    property bool showTimeline: width >= 760
+    property bool captions: Prefs.get("captions")
+    property bool autoplayDone: false
     property real stamp: 0
 
     function toggle() { mp.playbackState === MediaPlayer.PlayingState ? mp.pause() : mp.play() }
@@ -23,7 +24,7 @@ Item {
     function load() { stamp = proj.updatedMs || 0; if (mp.position > 0) resumeAt = mp.position; mp.stop(); mp.source = ""; reload.restart() }
     Timer { id: reload; interval: 350; onTriggered: mp.source = pl.proj.videoUrl || "" }
 
-    onVisibleChanged: { if (visible) { if (stamp !== (proj.updatedMs || 0) || mp.source.toString() === "") load() } else mp.pause() }
+    onVisibleChanged: { if (visible) { autoplayDone = false; captions = Prefs.get("captions"); loopChip.on = Prefs.get("loop"); if (stamp !== (proj.updatedMs || 0) || mp.source.toString() === "") load() } else mp.pause() }
     Connections { target: backend; function onProjectChanged() { if (pl.visible && pl.stamp !== (pl.proj.updatedMs || 0)) pl.load() } }
     Component.onCompleted: if (visible) load()
 
@@ -32,17 +33,20 @@ Item {
         videoOutput: vo
         audioOutput: AudioOutput { id: ao; muted: false }
         loops: loopChip.on ? MediaPlayer.Infinite : 1
-        onMediaStatusChanged: if (mediaStatus === MediaPlayer.LoadedMedia) { if (pl.resumeAt > 0) { position = pl.resumeAt; pl.resumeAt = 0 } pause() }
+        onMediaStatusChanged: if (mediaStatus === MediaPlayer.LoadedMedia) { if (pl.resumeAt > 0) { position = pl.resumeAt; pl.resumeAt = 0 } if (Prefs.get("autoplay") && !pl.autoplayDone) { pl.autoplayDone = true; play() } else pause() }
     }
 
-    Shortcut { enabled: pl.visible; sequence: "Space"; onActivated: pl.toggle() }
-    Shortcut { enabled: pl.visible; sequence: "I"; onActivated: pl.showInspector = !pl.showInspector }
-    Shortcut { enabled: pl.visible; sequence: "T"; onActivated: pl.showTimeline = !pl.showTimeline }
-    Shortcut { enabled: pl.visible; sequence: "C"; onActivated: pl.captions = !pl.captions }
-    Shortcut { enabled: pl.visible; sequence: "M"; onActivated: ao.muted = !ao.muted }
-    Shortcut { enabled: pl.visible; sequence: "Left"; onActivated: pl.seek(pl.secs - 5) }
-    Shortcut { enabled: pl.visible; sequence: "Right"; onActivated: pl.seek(pl.secs + 5) }
-    Shortcut { enabled: pl.visible; sequence: "F"; onActivated: Window.window.visibility = Window.window.visibility === Window.FullScreen ? Window.Windowed : Window.FullScreen }
+    Act { action: "player.play"; active: pl.visible; onTriggered: pl.toggle() }
+    Act { action: "player.inspector"; active: pl.visible; onTriggered: pl.showInspector = !pl.showInspector }
+    Act { action: "player.timeline"; active: pl.visible; onTriggered: pl.showTimeline = !pl.showTimeline }
+    Act { action: "player.captions"; active: pl.visible; onTriggered: pl.captions = !pl.captions }
+    Act { action: "player.mute"; active: pl.visible; onTriggered: ao.muted = !ao.muted }
+    Act { action: "player.back"; active: pl.visible; onTriggered: pl.seek(pl.secs - Prefs.get("seekStep")) }
+    Act { action: "player.forward"; active: pl.visible; onTriggered: pl.seek(pl.secs + Prefs.get("seekStep")) }
+    Act { action: "player.loop"; active: pl.visible; onTriggered: loopChip.on = !loopChip.on }
+    Act { action: "player.speed"; active: pl.visible; onTriggered: speedChip.cycle() }
+    Act { action: "player.review"; active: pl.visible; onTriggered: Nav.review(pl.secs) }
+    Act { action: "player.fullscreen"; active: pl.visible; onTriggered: Window.window.visibility = Window.window.visibility === Window.FullScreen ? Window.Windowed : Window.FullScreen }
 
     ColumnLayout {
         anchors.fill: parent
@@ -50,8 +54,8 @@ Item {
         TopBar {
             id: top
             crumbs: [{ text: "Home", page: "home" }, { text: pl.proj.name || "", page: "folder" }, { text: "video.mp4", page: "player" }]
-            Btn { visible: pl.width >= 1100; text: (pl.showInspector ? "Hide" : "Show") + " inspector  I"; onClicked: pl.showInspector = !pl.showInspector }
-            Btn { visible: !pl.compact; text: (pl.showTimeline ? "Hide" : "Show") + " timeline  T"; onClicked: pl.showTimeline = !pl.showTimeline }
+            Btn { visible: pl.width >= 560; text: (pl.showInspector ? "Hide" : "Show") + " inspector  I"; onClicked: pl.showInspector = !pl.showInspector }
+            Btn { visible: pl.width >= 560; text: (pl.showTimeline ? "Hide" : "Show") + " timeline  T"; onClicked: pl.showTimeline = !pl.showTimeline }
             Btn { text: "Review"; primary: true; onClicked: Nav.review(pl.secs) }
         }
 
@@ -121,7 +125,7 @@ Item {
             }
 
             Rectangle {
-                visible: pl.showInspector && pl.width >= 1100
+                visible: pl.showInspector
                 Layout.fillHeight: true; Layout.preferredWidth: 300; color: Theme.p
                 Rectangle { width: 1; height: parent.height; color: Theme.l }
                 ColumnLayout {
@@ -148,7 +152,7 @@ Item {
         }
 
         Rectangle {
-            visible: pl.showTimeline && !pl.compact
+            visible: pl.showTimeline
             Layout.fillWidth: true; Layout.preferredHeight: 150; color: Theme.p
             Rectangle { width: parent.width; height: 1; color: Theme.l }
             Item {
